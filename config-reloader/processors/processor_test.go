@@ -50,3 +50,31 @@ func Test_callForEveryDirective(t *testing.T) {
 	assert.Nil(t, err, "was error instead %+v", err)
 	assert.Equal(t, 5, count)
 }
+
+func TestTransformAndCopy(t *testing.T) {
+	s := `
+<match **>
+    @type logzio
+	<buffer>
+		@type file
+		path /etc/passwd
+		<nested>
+		</nested>
+  </buffer>
+</match>
+
+<match **>
+  @type logzio
+	<buffer>
+		@type file
+		path /etc/passwd
+  </buffer>
+</match>
+`
+	fragment, err := fluentd.ParseString(s)
+	assert.Nil(t, err)
+
+	clone := transform(fragment, copy)
+
+	assert.Equal(t, fragment.String(), clone.String())
+}

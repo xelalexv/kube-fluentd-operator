@@ -54,6 +54,30 @@ func (p *BaseProcessorState) SetContext(ctx *ProcessorContext) {
 	p.Context = ctx
 }
 
+func transform(input fluentd.Fragment, f func(dir *fluentd.Directive, parent *fluentd.Fragment) *fluentd.Directive) fluentd.Fragment {
+	res := &fluentd.Fragment{}
+	doTransform(input, f, res)
+	return *res
+}
+
+func doTransform(input fluentd.Fragment, f func(dir *fluentd.Directive, parent *fluentd.Fragment) *fluentd.Directive, res *fluentd.Fragment) {
+	for _, child := range input {
+		newChild := f(child, res)
+
+		if len(child.Nested) > 0 && newChild != nil {
+			chres := &fluentd.Fragment{}
+			doTransform(child.Nested, f, chres)
+			newChild.Nested = *chres
+		}
+	}
+}
+
+func copy(dir *fluentd.Directive, parent *fluentd.Fragment) *fluentd.Directive {
+	copy := dir.Clone()
+	*parent = append(*parent, copy)
+	return copy
+}
+
 func applyRecursivelyInPlace(directives fluentd.Fragment, ctx *ProcessorContext, callback func(*fluentd.Directive, *ProcessorContext) error) error {
 	for _, d := range directives {
 		err := callback(d, ctx)
@@ -136,5 +160,6 @@ func DefaultProcessors() []FragmentProcessor {
 		&rewriteLabelsState{},
 		&mountedFileState{},
 		&shareLogsState{},
+		&detectExceptionsState{},
 	}
 }
