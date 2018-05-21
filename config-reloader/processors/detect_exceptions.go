@@ -19,8 +19,20 @@ type detectExceptionsState struct {
 	BaseProcessorState
 }
 
+func (state *detectExceptionsState) Prepare(input fluentd.Fragment) (fluentd.Fragment, error) {
+	cb := func(d *fluentd.Directive, ctx *ProcessorContext) error {
+		if d.Name == "filter" && d.Type() == "detect_exceptions" {
+			ctx.GenerationContext.NeedsProcessing = true
+		}
+
+		return nil
+	}
+
+	applyRecursivelyInPlace(input, state.Context, cb)
+	return nil, nil
+}
+
 func (state *detectExceptionsState) Process(input fluentd.Fragment) (fluentd.Fragment, error) {
-	needsRewrite := false
 	rewrite := func(dir *fluentd.Directive, parent *fluentd.Fragment) *fluentd.Directive {
 		if dir.Name != "filter" || dir.Type() != "detect_exceptions" {
 			c := dir.Clone()
@@ -28,8 +40,8 @@ func (state *detectExceptionsState) Process(input fluentd.Fragment) (fluentd.Fra
 			return c
 		}
 
-		needsRewrite = true
-		tagPrefix := makeTagPrefix(dir.Tag)
+		unprocessedSelector := extractSelector(dir.Tag)
+		tagPrefix := makeTagPrefix(unprocessedSelector)
 
 		rule := &fluentd.Directive{
 			Name:   "rule",
@@ -38,24 +50,25 @@ func (state *detectExceptionsState) Process(input fluentd.Fragment) (fluentd.Fra
 		rule.SetParam("key", "_dummy")
 		rule.SetParam("pattern", "/ZZ/")
 		rule.SetParam("invert", "true")
-		rule.SetParam("tag", fmt.Sprintf("%s.%s.${tag}", tagPrefix, keyDetExc))
+		rule.SetParam("tag", fmt.Sprintf("%s.%s.${tag}", tagPrefix, prefixProcessed))
 
 		rewriteTag := &fluentd.Directive{
 			Name:   "match",
-			Tag:    dir.Tag,
+			Tag:    unprocessedSelector,
 			Params: fluentd.ParamsFromKV("@type", "rewrite_tag_filter"),
 			Nested: fluentd.Fragment{rule},
 		}
 
 		detectExceptions := &fluentd.Directive{
 			Name:   "match",
-			Tag:    fmt.Sprintf("%s.%s.%s", tagPrefix, keyDetExc, dir.Tag),
+			Tag:    fmt.Sprintf("%s.%s.%s", tagPrefix, prefixProcessed, unprocessedSelector),
 			Params: fluentd.ParamsFromKV("@type", "detect_exceptions"),
 		}
 		detectExceptions.SetParam("stream", "container_info")
 		detectExceptions.SetParam("remove_tag_prefix", tagPrefix)
 
 		// copy all relevant params from the original <filter> directive
+		// https://github.com/GoogleCloudPlatform/fluent-plugin-detect-exceptions
 		copyParam("languages", dir, detectExceptions)
 		copyParam("multiline_flush_interval", dir, detectExceptions)
 		copyParam("max_lines", dir, detectExceptions)
@@ -68,29 +81,18 @@ func (state *detectExceptionsState) Process(input fluentd.Fragment) (fluentd.Fra
 	}
 
 	res := transform(input, rewrite)
-
-	if needsRewrite {
-		augmentTag := func(dir *fluentd.Directive, ctx *ProcessorContext) error {
-			// only process the original directives
-
-			pfx := fmt.Sprintf("kube.%s.", ctx.Namepsace)
-			if strings.HasPrefix(dir.Tag, pfx) &&
-				dir.Type() != "rewrite_tag_filter" {
-				tag := dir.Tag
-				dir.Tag = fmt.Sprintf("%s %s.%s", tag, keyDetExc, tag)
-			}
-
-			return nil
-		}
-
-		applyRecursivelyInPlace(res, state.Context, augmentTag)
-	}
-
 	return res, nil
 }
 
 func makeTagPrefix(selector string) string {
 	return util.Hash(keyDetExc, selector)
+}
+
+func extractSelector(tag string) string {
+	parts := strings.Split(tag, " ")
+	// abstraction leak: the labels processor has produced a tag in the form "xxx _proc.xxx"
+	// the auto-generated <match> directives need only the first one
+	return parts[0]
 }
 
 func copyParam(name string, src, dest *fluentd.Directive) {

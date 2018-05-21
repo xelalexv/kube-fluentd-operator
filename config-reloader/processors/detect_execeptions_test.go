@@ -47,6 +47,7 @@ func TestRewrite(t *testing.T) {
 
 	processed, err := Process(fragment, ctx, expandThis, labelProc, detExc)
 	assert.Nil(t, err)
+	assert.Equal(t, 7, len(processed))
 
 	fmt.Printf("Processed:\n%s\n", processed)
 }
@@ -78,4 +79,10 @@ func TestBuild(t *testing.T) {
 	clone := transform(fragment, copy)
 
 	assert.Equal(t, fragment.String(), clone.String())
+}
+
+func TestExtractSelector(t *testing.T) {
+	assert.Equal(t, "xxx", extractSelector("xxx"))
+	assert.Equal(t, "xxx", extractSelector("xxx _proc.xxx"))
+	assert.Equal(t, "xxx", extractSelector("xxx what ever man"))
 }

@@ -200,6 +200,7 @@ func (p *expandLabelsMacroState) Process(input fluentd.Fragment) (fluentd.Fragme
 		}
 
 		d.Tag = makeTagFromFilter(ctx.Namepsace, sortedLabelNames, labelNames)
+		ctx.GenerationContext.augmentTag(d)
 		return nil
 	}
 	applyRecursivelyInPlace(input, p.Context, replaceLabels)

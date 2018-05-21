@@ -5,13 +5,28 @@ package processors
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/vmware/kube-fluentd-operator/config-reloader/datasource"
 	"github.com/vmware/kube-fluentd-operator/config-reloader/fluentd"
 )
 
+const (
+	prefixProcessed = "_proc"
+)
+
 type GenerationContext struct {
 	ReferencedBridges map[string]bool
+	NeedsProcessing   bool
+}
+
+func (g *GenerationContext) augmentTag(d *fluentd.Directive) {
+	if g == nil || !g.NeedsProcessing {
+		return
+	}
+
+	orig := d.Tag
+	d.Tag = augmentTag(orig)
 }
 
 type ProcessorContext struct {
@@ -33,9 +48,11 @@ type FragmentProcessor interface {
 	SetContext(*ProcessorContext)
 
 	// Prepare may define directives that are applied to the main fluentd file
+	// The results of all registered processors are concatenated ans included in fluentd.conf
 	Prepare(fluentd.Fragment) (fluentd.Fragment, error)
 
 	// Process defines directives that are put in their own ns-{namespace}.conf file
+	// The results of the registered processors are chained. Order of registration is important.
 	Process(fluentd.Fragment) (fluentd.Fragment, error)
 
 	// GetValidationTrailer produces a trailer that would make a namspace config valid in isolation
@@ -150,6 +167,15 @@ func Prepare(input fluentd.Fragment, ctx *ProcessorContext, processors ...Fragme
 	}
 
 	return res, nil
+}
+
+func augmentTag(orig string) string {
+	if orig == "" {
+		// that's an error usually
+		return ""
+	}
+
+	return fmt.Sprintf("%s %s.%s", orig, prefixProcessed, orig)
 }
 
 func DefaultProcessors() []FragmentProcessor {

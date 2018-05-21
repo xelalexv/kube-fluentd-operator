@@ -78,3 +78,8 @@ func TestTransformAndCopy(t *testing.T) {
 
 	assert.Equal(t, fragment.String(), clone.String())
 }
+
+func TestAugmentTag(t *testing.T) {
+	s := augmentTag("hello")
+	assert.Equal(t, "hello _proc.hello", s)
+}
