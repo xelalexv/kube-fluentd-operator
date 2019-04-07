@@ -60,6 +60,7 @@ RUN buildDeps="sudo make gcc g++ libc-dev ruby-dev libffi-dev wget" \
     && fluent-gem install fluent-plugin-systemd \
     && fluent-gem install fluent-plugin-vertica \
     && fluent-gem install fluent-plugin-verticajson \
+    && fluent-gem install fluent-plugin-kubernetes_sumologic \
     && fluent-gem install logfmt \
     && wget https://github.com/vmware/fluent-plugin-vmware-log-intelligence/releases/download/v1.0.0/fluent-plugin-vmware-log-intelligence-1.0.0.gem \
     && fluent-gem install --local fluent-plugin-vmware-log-intelligence-1.0.0.gem \
