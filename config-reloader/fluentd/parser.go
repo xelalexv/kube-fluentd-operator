@@ -43,8 +43,9 @@ type Directive struct {
 
 // Param just holds a Name/Value pair
 type Param struct {
-	Name  string
-	Value string
+	Name      string
+	Value     string
+	Protected bool
 }
 
 // Type return the @type parameter or type parameter. "" if not type is defined
@@ -89,8 +90,9 @@ func (d *Directive) Clone() *Directive {
 
 func (p *Param) Clone() *Param {
 	return &Param{
-		Name:  p.Name,
-		Value: p.Value,
+		Name:      p.Name,
+		Value:     p.Value,
+		Protected: p.Protected,
 	}
 }
 
@@ -115,10 +117,11 @@ func ParamsFromKV(keyValues ...string) Params {
 
 		k := keyValues[i]
 		v := keyValues[i+1]
-		res[k] = &Param{
+		p := protect(&Param{
 			Name:  k,
 			Value: v,
-		}
+		})
+		res[p.Name] = p
 	}
 
 	return res
@@ -288,9 +291,9 @@ func ParseString(s string) (Fragment, error) {
 
 		p := reParam.FindStringSubmatch(line)
 		if len(p) > 0 {
-			param := &Param{
+			param := protect(&Param{
 				Name: p[1],
-			}
+			})
 			if len(p) > 2 {
 				param.Value = p[3]
 				// special handling for @type as it is processed
@@ -314,4 +317,12 @@ func ParseString(s string) (Fragment, error) {
 	}
 
 	return res, nil
+}
+
+func protect(p *Param) *Param {
+	if p != nil && !p.Protected && strings.HasPrefix(p.Name, "!") {
+		p.Name = p.Name[1:]
+		p.Protected = true
+	}
+	return p
 }

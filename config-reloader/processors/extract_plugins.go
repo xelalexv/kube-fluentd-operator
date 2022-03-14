@@ -55,8 +55,8 @@ func (p *expandPluginsState) Process(input fluentd.Fragment) (fluentd.Fragment, 
 
 		// replace the params
 		for k, v := range replacement.Params {
-			// prefer the params defined at the call site
-			if _, ok := d.Params[k]; !ok {
+			// prefer the params defined at the call site, unless the param is protected
+			if _, ok := d.Params[k]; !ok || v.Protected {
 				d.Params[k] = v.Clone()
 			}
 		}

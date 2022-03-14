@@ -41,6 +41,8 @@ func TestExpandPlugins(t *testing.T) {
 	username admin
 	buffer_path /hello/world
 	buffer_size 1m
+	!fixed DoNotChange
+	!keep KeepIt
 	<buffer>
 		@type file
 		path /var/log/fluentd.*.buffer
@@ -72,6 +74,10 @@ func TestExpandPlugins(t *testing.T) {
 
   # param is overridden
   buffer_size 5m
+
+  # params are protected
+  fixed Changed
+  !keep Changed
 </match>
 
 <match **>
@@ -106,6 +112,10 @@ func TestExpandPlugins(t *testing.T) {
 
 	// param that's overridden
 	assert.Equal(t, "5m", matchDir.Param("buffer_size"))
+
+	// params that are protected should remain unchanged
+	assert.Equal(t, "DoNotChange", matchDir.Param("fixed"))
+	assert.Equal(t, "KeepIt", matchDir.Param("keep"))
 
 	// nested content is present
 	assert.Equal(t, "buffer", matchDir.Nested[0].Name)

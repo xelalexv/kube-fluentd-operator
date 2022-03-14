@@ -219,3 +219,19 @@ func TestParseNested(t *testing.T) {
 	assert.Equal(t, "file", match.Type())
 	assert.Equal(t, "/var/log/fluent/access", match.Param("path"))
 }
+
+func TestProtectedParam(t *testing.T) {
+	dir := Directive{
+		Name:   "ok",
+		Tag:    "tag",
+		Params: ParamsFromKV("a", "1", "!b", "2"),
+	}
+
+	assert.Equal(t, 2, len(dir.Params))
+	assert.False(t, dir.Params["a"].Protected)
+	assert.True(t, dir.Params["b"].Protected)
+
+	params := dir.Params.Clone()
+	assert.False(t, params["a"].Protected)
+	assert.True(t, params["b"].Protected)
+}
