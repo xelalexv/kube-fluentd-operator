@@ -9,6 +9,7 @@ import (
 
 	"github.com/vmware/kube-fluentd-operator/config-reloader/datasource"
 	"github.com/vmware/kube-fluentd-operator/config-reloader/fluentd"
+	"github.com/vmware/kube-fluentd-operator/config-reloader/util"
 )
 
 const (
@@ -46,6 +47,9 @@ type ProcessorContext struct {
 	BufferMountFolder string
 	GenerationContext *GenerationContext
 	AllowTagExpansion bool
+	//
+	Strict       bool
+	AllowedTypes *util.AllowList
 }
 
 type BaseProcessorState struct {

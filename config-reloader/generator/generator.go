@@ -300,6 +300,8 @@ func (g *Generator) makeContext(ns *datasource.NamespaceConfig, genCtx *processo
 		BufferMountFolder: g.cfg.BufferMountFolder,
 		GenerationContext: genCtx,
 		AllowTagExpansion: g.cfg.AllowTagExpansion,
+		Strict:            g.cfg.Strict,
+		AllowedTypes:      util.NewAllowList(g.cfg.AllowedTypes),
 	}
 	return ctx
 }

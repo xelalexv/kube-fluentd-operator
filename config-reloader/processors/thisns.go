@@ -56,6 +56,17 @@ func (p *expandThisnsMacroState) Process(input fluentd.Fragment) (fluentd.Fragme
 		return nil
 	}
 
+	// we check top level directives here before going into recursion, since
+	// inside recursion we cannot determine whether we are at top level
+	if p.Context.Strict {
+		for _, d := range input {
+			if d.Name != "match" && d.Name != "filter" {
+				return nil, fmt.Errorf(
+					"strict mode only allows 'match' and 'filter' tags, not '%s'", d.Name)
+			}
+		}
+	}
+
 	err := applyRecursivelyInPlace(input, p.Context, f)
 	if err != nil {
 		return nil, err

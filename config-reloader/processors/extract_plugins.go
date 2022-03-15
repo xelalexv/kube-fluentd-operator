@@ -1,6 +1,8 @@
 package processors
 
 import (
+	"fmt"
+
 	"github.com/vmware/kube-fluentd-operator/config-reloader/fluentd"
 )
 
@@ -42,6 +44,10 @@ func (p *expandPluginsState) Process(input fluentd.Fragment) (fluentd.Fragment, 
 		if d.Name != "match" && d.Name != "store" {
 			// only output plugins supported
 			return nil
+		}
+
+		if !p.Context.AllowedTypes.Ok(d.Type()) {
+			return fmt.Errorf("type '%s' not allowed", d.Type())
 		}
 
 		replacement, ok := p.Context.GenerationContext.Plugins[d.Type()]

@@ -123,3 +123,54 @@ func TrimTrailingComment(line string) string {
 
 	return line
 }
+
+func MakeStructureHash(v interface{}) (uint64, error) {
+	hashV, err := hashstructure.Hash(v, hashstructure.FormatV2, nil)
+	if err != nil {
+		return hashV, err
+	}
+
+	return hashV, nil
+}
+
+func AreStructureHashEqual(v interface{}, f interface{}) bool {
+	hashV, _ := hashstructure.Hash(v, hashstructure.FormatV2, nil)
+	hashF, _ := hashstructure.Hash(f, hashstructure.FormatV2, nil)
+
+	if hashV != 0 && hashF != 0 {
+		return hashV == hashF
+	}
+
+	return false
+}
+
+type AllowList struct {
+	allowed map[string]bool
+}
+
+func NewAllowList(l string) *AllowList {
+	ret := &AllowList{allowed: make(map[string]bool)}
+	for _, e := range strings.Split(l, ",") {
+		ret.Allow(e)
+	}
+	return ret
+}
+
+func (a *AllowList) Allow(k string) {
+	if a != nil && len(k) > 0 {
+		a.allowed[k] = true
+	}
+}
+
+func (a *AllowList) Deny(k string) {
+	if a != nil {
+		delete(a.allowed, k)
+	}
+}
+
+func (a *AllowList) Ok(k string) bool {
+	if a == nil || len(a.allowed) == 0 {
+		return true
+	}
+	return a.allowed[k]
+}

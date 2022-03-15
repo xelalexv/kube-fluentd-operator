@@ -50,6 +50,8 @@ type Config struct {
 	PrometheusEnabled      bool
 	MetricsPort            int
 	AllowTagExpansion      bool
+	Strict                 bool
+	AllowedTypes           string
 	AdminNamespace         string
 	// parsed or processed/cached fields
 	level               logrus.Level
@@ -247,6 +249,9 @@ func (cfg *Config) ParseFlags(args []string) error {
 	app.Flag("label-selector", "Label selector in the k=v,k2=v2 format (used only with --datasource=multimap)").StringVar(&cfg.LabelSelector)
 
 	app.Flag("allow-tag-expansion", "Allow specifying tags in the format 'k.{a,b}.** k.c.**' (default: false)").BoolVar(&cfg.AllowTagExpansion)
+
+	app.Flag("strict", "Set to prohibit use of tags other than 'filter' and 'match' (default: false)").BoolVar(&cfg.Strict)
+	app.Flag("allowed-types", "Set to limit the types that can be used.").StringVar(&cfg.AllowedTypes)
 
 	app.Flag("admin-namespace", "Configurations defined in this namespace are copied as is, without further processing. Virtual plugins can also be defined in this namespace").Default(defaultConfig.AdminNamespace).StringVar(&cfg.AdminNamespace)
 
