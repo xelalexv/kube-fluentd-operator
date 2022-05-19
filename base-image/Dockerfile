@@ -128,18 +128,6 @@ RUN mkdir -p /fluentd/log /fluentd/etc /fluentd/plugins /usr/local/bundle/bin/ \
   && gem build fluent-plugin-detect-exceptions.gemspec \
   && gem install fluent-plugin-detect-exceptions-*.gem \
   && rm -rf /fluentd/fluent-plugin-detect-exceptions \
-  && cd /fluentd \
-  && git clone https://github.com/Cryptophobia/fluent-plugin-google-cloud.git fluent-plugin-google-cloud \
-  && cd fluent-plugin-google-cloud \
-  && gem build fluent-plugin-google-cloud.gemspec \
-  && gem install fluent-plugin-google-cloud-*.gem \
-  && rm -rf /fluentd/fluent-plugin-google-cloud \
-  && cd /fluentd \
-  && git clone https://github.com/Cryptophobia/fluent-plugin-loggly.git fluent-plugin-loggly \
-  && cd fluent-plugin-loggly \
-  && gem build fluent-plugin-loggly.gemspec \
-  && gem install fluent-plugin-loggly-*.gem \
-  && rm -rf /fluentd/fluent-plugin-loggly \
   && wget https://github.com/jemalloc/jemalloc/releases/download/3.6.0/jemalloc-3.6.0.tar.bz2 -P /tmp \
   && tar -C /tmp/ -xjvf /tmp/jemalloc-3.6.0.tar.bz2 \
   && cd /tmp/jemalloc-3.6.0 \
