@@ -90,11 +90,11 @@ GEM
     fluent-plugin-kubernetes (0.3.1)
       docker-api
       fluentd
-    fluent-plugin-kubernetes-metrics (1.1.12)
+    fluent-plugin-kubernetes-metrics (1.2.0)
       fluentd (>= 1.9.1)
       kubeclient (~> 4.9.3)
-      multi_json (~> 1.14.1)
-      oj (~> 3.10.2)
+      multi_json (~> 1.14)
+      oj (~> 3.10)
     fluent-plugin-kubernetes_metadata_filter (2.10.0)
       fluentd (>= 0.14.0, < 1.15)
       kubeclient (>= 4.0.0, < 5.0.0)
@@ -249,8 +249,6 @@ GEM
     webfinger (1.2.0)
       activesupport
       httpclient (>= 2.4)
-    webhdfs (0.10.2)
-      addressable
     webrick (1.7.0)
     yajl-ruby (1.4.3)
 
@@ -266,7 +264,7 @@ DEPENDENCIES
   fluent-plugin-grok-parser (= 2.6.2)
   fluent-plugin-json-in-json-2 (= 1.0.2)
   fluent-plugin-kubernetes (= 0.3.1)
-  fluent-plugin-kubernetes-metrics (= 1.1.12)
+  fluent-plugin-kubernetes-metrics (= 1.2.0)
   fluent-plugin-kubernetes_metadata_filter (= 2.10.0)
   fluent-plugin-logentries (= 0.2.10)
   fluent-plugin-multi-format-parser (= 1.0.0)

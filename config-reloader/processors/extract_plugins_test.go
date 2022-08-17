@@ -78,6 +78,9 @@ func TestExpandPlugins(t *testing.T) {
   # params are protected
   fixed Changed
   !keep Changed
+
+  # trying to get from env
+  secret "#{ENV['THE_SECRET']}"
 </match>
 
 <match **>
@@ -92,11 +95,20 @@ func TestExpandPlugins(t *testing.T) {
 		GenerationContext: g,
 		Namespace:         "unit-test",
 		DeploymentID:      "whatever",
+		Strict:            true,
 	}
 
 	state := &expandPluginsState{}
 	state.SetContext(ctx)
 
+	// fmt.Printf("Original:\n%s", fragment)
+	_, err = state.Process(fragment)
+	// when strict, env var references need to raise an error
+	// fmt.Printf("Processed:\n%s", processed)
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "env references not allowed")
+
+	ctx.Strict = false
 	processed, err := state.Process(fragment)
 	assert.Nil(t, err)
 
@@ -116,6 +128,9 @@ func TestExpandPlugins(t *testing.T) {
 	// params that are protected should remain unchanged
 	assert.Equal(t, "DoNotChange", matchDir.Param("fixed"))
 	assert.Equal(t, "KeepIt", matchDir.Param("keep"))
+
+	// when not strict, env var references are allowed
+	assert.Equal(t, "\"#{ENV['THE_SECRET']}\"", matchDir.ParamVerbatim("secret"))
 
 	// nested content is present
 	assert.Equal(t, "buffer", matchDir.Nested[0].Name)

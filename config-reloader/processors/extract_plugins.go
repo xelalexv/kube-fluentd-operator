@@ -2,6 +2,7 @@ package processors
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/vmware/kube-fluentd-operator/config-reloader/fluentd"
 )
@@ -53,6 +54,14 @@ func (p *expandPluginsState) Process(input fluentd.Fragment) (fluentd.Fragment, 
 		replacement, ok := p.Context.GenerationContext.Plugins[d.Type()]
 		if !ok {
 			return nil
+		}
+
+		if p.Context.Strict {
+			for _, v := range d.Params {
+				if strings.Contains(v.Value, "#{ENV[") {
+					return fmt.Errorf("env references not allowed: %s", v.String())
+				}
+			}
 		}
 
 		// replace any nested content (buffers etc)

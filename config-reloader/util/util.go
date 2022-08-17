@@ -124,26 +124,6 @@ func TrimTrailingComment(line string) string {
 	return line
 }
 
-func MakeStructureHash(v interface{}) (uint64, error) {
-	hashV, err := hashstructure.Hash(v, hashstructure.FormatV2, nil)
-	if err != nil {
-		return hashV, err
-	}
-
-	return hashV, nil
-}
-
-func AreStructureHashEqual(v interface{}, f interface{}) bool {
-	hashV, _ := hashstructure.Hash(v, hashstructure.FormatV2, nil)
-	hashF, _ := hashstructure.Hash(f, hashstructure.FormatV2, nil)
-
-	if hashV != 0 && hashF != 0 {
-		return hashV == hashF
-	}
-
-	return false
-}
-
 type AllowList struct {
 	allowed map[string]bool
 }
