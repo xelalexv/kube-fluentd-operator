@@ -42,6 +42,14 @@ func (p *expandPluginsState) Process(input fluentd.Fragment) (fluentd.Fragment, 
 	}
 
 	f := func(d *fluentd.Directive, ctx *ProcessorContext) error {
+		if p.Context.Strict {
+			for _, v := range d.Params {
+				if strings.Contains(v.Value, "#{ENV[") {
+					return fmt.Errorf("env references not allowed: %s", v.String())
+				}
+			}
+		}
+
 		if d.Name != "match" && d.Name != "store" {
 			// only output plugins supported
 			return nil
@@ -54,14 +62,6 @@ func (p *expandPluginsState) Process(input fluentd.Fragment) (fluentd.Fragment, 
 		replacement, ok := p.Context.GenerationContext.Plugins[d.Type()]
 		if !ok {
 			return nil
-		}
-
-		if p.Context.Strict {
-			for _, v := range d.Params {
-				if strings.Contains(v.Value, "#{ENV[") {
-					return fmt.Errorf("env references not allowed: %s", v.String())
-				}
-			}
 		}
 
 		// replace any nested content (buffers etc)
